@@ -1,0 +1,30 @@
+# Build artifacts
+/target/
+**/*.rs.bk
+*.pdb
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Output
+/output/
+/ast_output/
+*.dast
+*.map.json
+
+# Logs
+*.log
+
+# Coverage
+/coverage/
+*.profraw
+*.profdata

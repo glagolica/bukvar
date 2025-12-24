@@ -1,0 +1,6 @@
+# Rust toolchain configuration for Bukvar
+# Part of the Glagolica Project
+
+[toolchain]
+channel = "stable"
+components = ["rustfmt", "clippy"]

@@ -1,0 +1,18 @@
+# Clippy configuration for Bukvar
+# Part of the Glagolica Project
+# https://github.com/glagolica/bukvar
+
+# Allow breaking changes to API (internal tool)
+avoid-breaking-exported-api = false
+
+# Minimum supported Rust version
+msrv = "1.70.0"
+
+# Cognitive complexity threshold
+cognitive-complexity-threshold = 25
+
+# Maximum lines in a function
+too-many-lines-threshold = 100
+
+# Maximum arguments
+too-many-arguments-threshold = 7

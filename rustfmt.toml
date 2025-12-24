@@ -1,0 +1,18 @@
+# Rust formatting configuration for Bukvar
+# Part of the Glagolica Project
+# https://github.com/glagolica/bukvar
+
+edition = "2021"
+max_width = 100
+tab_spaces = 2
+newline_style = "Auto"
+use_small_heuristics = "Default"
+
+# Import organization
+reorder_imports = true
+reorder_modules = true
+group_imports = "StdExternalCrate"
+
+# Formatting preferences
+use_field_init_shorthand = true
+use_try_shorthand = true

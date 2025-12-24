@@ -1,0 +1,125 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [main, master]
+    tags: ["v*"]
+  pull_request:
+    branches: [main, master]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Windows
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            ext: .exe
+          - target: i686-pc-windows-msvc
+            os: windows-latest
+            ext: .exe
+          - target: aarch64-pc-windows-msvc
+            os: windows-latest
+            ext: .exe
+
+          # Linux
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            ext: ""
+          - target: x86_64-unknown-linux-musl
+            os: ubuntu-latest
+            ext: ""
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-latest
+            ext: ""
+          - target: armv7-unknown-linux-gnueabihf
+            os: ubuntu-latest
+            ext: ""
+
+          # macOS
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            ext: ""
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            ext: ""
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-action@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install cross-compilation tools (Linux)
+        if: runner.os == 'Linux' && matrix.target != 'x86_64-unknown-linux-gnu'
+        run: |
+          sudo apt-get update
+          case "${{ matrix.target }}" in
+            x86_64-unknown-linux-musl)
+              sudo apt-get install -y musl-tools
+              ;;
+            aarch64-unknown-linux-gnu)
+              sudo apt-get install -y gcc-aarch64-linux-gnu
+              ;;
+            armv7-unknown-linux-gnueabihf)
+              sudo apt-get install -y gcc-arm-linux-gnueabihf
+              ;;
+          esac
+
+      - name: Build
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Package (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          mkdir -p dist
+          cp target/${{ matrix.target }}/release/bukvar${{ matrix.ext }} dist/
+          cd dist
+          tar -czvf bukvar-${{ matrix.target }}.tar.gz bukvar${{ matrix.ext }}
+
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          mkdir dist
+          copy target\${{ matrix.target }}\release\bukvar${{ matrix.ext }} dist\
+          cd dist
+          7z a bukvar-${{ matrix.target }}.zip bukvar${{ matrix.ext }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bukvar-${{ matrix.target }}
+          path: dist/bukvar-${{ matrix.target }}.*
+
+  release:
+    name: Create Release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: artifacts/**/*
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

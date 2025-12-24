@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -Dwarnings
+
+jobs:
+  # ─────────────────────────────────────────────────────────────
+  # Format Check
+  # ─────────────────────────────────────────────────────────────
+  fmt:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - run: cargo fmt --all -- --check
+
+  # ─────────────────────────────────────────────────────────────
+  # Clippy Lint
+  # ─────────────────────────────────────────────────────────────
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo clippy --all-targets --all-features
+
+  # ─────────────────────────────────────────────────────────────
+  # Tests
+  # ─────────────────────────────────────────────────────────────
+  test:
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test --all-features
+
+  # ─────────────────────────────────────────────────────────────
+  # Build Check
+  # ─────────────────────────────────────────────────────────────
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build --release
+      - name: Check binary size
+        run: |
+          ls -lh target/release/bukvar
+          echo "Binary size: $(stat -f%z target/release/bukvar 2>/dev/null || stat -c%s target/release/bukvar) bytes"
+
+  # ─────────────────────────────────────────────────────────────
+  # Documentation
+  # ─────────────────────────────────────────────────────────────
+  docs:
+    name: Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo doc --no-deps
+        env:
+          RUSTDOCFLAGS: -Dwarnings
+
+  # ─────────────────────────────────────────────────────────────
+  # MSRV Check
+  # ─────────────────────────────────────────────────────────────
+  msrv:
+    name: MSRV (1.70.0)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.70.0
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo check

@@ -1,0 +1,18 @@
+#!/bin/sh
+# Pre-commit hook using justfile
+# Runs formatting check and linting before commit
+
+set -e
+
+# Check if just is available
+if ! command -v just &> /dev/null; then
+    echo "Error: 'just' is not installed"
+    echo "Install: cargo install just"
+    echo "Falling back to cargo commands..."
+    cargo fmt -- --check || { echo "Run 'cargo fmt' first"; exit 1; }
+    cargo clippy -- -D warnings || { echo "Clippy failed"; exit 1; }
+    exit 0
+fi
+
+# Run pre-commit checks via justfile
+just pre-commit

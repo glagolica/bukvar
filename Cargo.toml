@@ -1,0 +1,48 @@
+[package]
+name = "bukvar"
+version = "1.0.0"
+edition = "2021"
+authors = ["Glagolica"]
+description = "Ultra-fast zero-dependency markdown and documentation parser to AST - part of Glagolica"
+license = "LGPL-3.0-or-later"
+readme = "README.md"
+repository = "https://github.com/glagolica/bukvar"
+homepage = "https://github.com/glagolica/bukvar"
+documentation = "https://docs.rs/bukvar"
+keywords = [
+  "markdown",
+  "parser",
+  "ast",
+  "jsdoc",
+  "javadoc",
+  "pydoc",
+  "gfm",
+  "glagolica",
+]
+categories = ["command-line-utilities", "parsing", "development-tools"]
+exclude = [".github/*", "target/*", "examples/*", "hooks/*"]
+
+# Zero external dependencies - everything is implemented from scratch!
+[dependencies]
+
+[dev-dependencies]
+# No dev dependencies either!
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = true
+
+[profile.dev]
+opt-level = 0
+debug = true
+
+[profile.test]
+opt-level = 0
+debug = true
+
+[[bin]]
+name = "bukvar"
+path = "src/main.rs"
