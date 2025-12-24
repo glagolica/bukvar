@@ -91,20 +91,6 @@ just release  # Build release
 just ci       # Full CI pipeline
 ```
 
-## Project Structure
-
-```
-src/
-├── main.rs          # Entry point
-├── cli.rs           # Argument parsing
-├── ast/             # AST types
-├── markdown/        # GFM parser
-├── parsers/         # JSDoc, JavaDoc, PyDoc
-├── formats/         # JSON and DAST output
-├── streaming.rs     # Streaming parser
-└── validate.rs      # AST validation
-```
-
 ## License
 
 GNU Lesser General Public License v3.0 - see [LICENSE.md](LICENSE.md)
