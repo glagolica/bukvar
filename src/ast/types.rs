@@ -44,12 +44,12 @@ pub enum Alignment {
 /// - Shortcut: `[label]`
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ReferenceType {
-  /// Full reference: [text][label]
+  /// Full reference: `[text][label]`
   Full,
-  /// Collapsed reference: [label][]
+  /// Collapsed reference: `[label][]`
   #[allow(dead_code)]
   Collapsed,
-  /// Shortcut reference: [label]
+  /// Shortcut reference: `[label]`
   Shortcut,
 }
 

@@ -137,7 +137,7 @@ pub enum NodeKind {
     alt: String,
     title: Option<String>,
   },
-  /// Autolink (<url>)
+  /// Autolink (`<url>`)
   AutoLink {
     url: String,
   },

@@ -4,7 +4,7 @@ use super::InlineParser;
 use crate::ast::{Node, NodeKind, ReferenceType, Span};
 
 impl<'a> InlineParser<'a> {
-  /// Try to parse link [text](url) or image ![alt](url).
+  /// Try to parse link `[text](url)` or image `![alt](url)`.
   pub fn try_link(&mut self, is_image: bool) -> Option<Node> {
     let start = self.pos;
     if is_image {

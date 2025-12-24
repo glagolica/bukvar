@@ -86,7 +86,7 @@ impl<'a> InlineParser<'a> {
     ))
   }
 
-  /// Try to parse autolink (<url> or <email>).
+  /// Try to parse autolink (`<url>` or `<email>`).
   pub fn try_autolink(&mut self) -> Option<Node> {
     let start = self.pos;
     self.pos += 1; // skip <
