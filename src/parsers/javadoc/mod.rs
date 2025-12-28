@@ -87,13 +87,11 @@ impl<'a> JavaDocParser<'a> {
         content.push('\n');
         self.advance();
         self.skip_line_prefix();
+      } else if let Some(c) = self.input[self.pos..].chars().next() {
+        content.push(c);
+        self.advance_n(c.len_utf8());
       } else {
-        if let Some(c) = self.input[self.pos..].chars().next() {
-          content.push(c);
-          self.advance_n(c.len_utf8());
-        } else {
-          self.advance();
-        }
+        self.advance();
       }
     }
 
