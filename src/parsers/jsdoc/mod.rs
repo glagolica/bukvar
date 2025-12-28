@@ -90,8 +90,10 @@ impl<'a> JsDocParser<'a> {
       } else {
         if let Some(c) = self.input[self.pos..].chars().next() {
           content.push(c);
+          self.advance_n(c.len_utf8());
+        } else {
+          self.advance();
         }
-        self.advance();
       }
     }
 

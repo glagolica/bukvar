@@ -132,6 +132,12 @@ fn node_type_name(kind: &crate::ast::NodeKind) -> String {
     DefinitionTerm => "DefinitionTerm",
     DefinitionDescription => "DefinitionDescription",
     AutoUrl { .. } => "AutoUrl",
+    Alert { .. } => "Alert",
+    Steps => "Steps",
+    Step => "Step",
+    Toc => "Toc",
+    Tabs { .. } => "Tabs",
+    CodeBlockExt { .. } => "CodeBlockExt",
     _ => "Unknown",
   }
   .to_string()

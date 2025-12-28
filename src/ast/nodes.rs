@@ -1,5 +1,6 @@
 //! AST nodes.
 
+use super::types::AlertType;
 use super::{Alignment, DocStyle, ListMarker, ReferenceType, Span};
 
 /// AST node: kind + span + children.
@@ -266,6 +267,30 @@ pub enum NodeKind {
   /// Auto-detected URL (without angle brackets)
   AutoUrl {
     url: String,
+  },
+
+  // === Glagolica Extensions ===
+  /// Alert blockquote (`> [!NOTE]`, `> [!TIP]`, etc.)
+  Alert {
+    alert_type: AlertType,
+  },
+  /// Steps container (`<steps>`)
+  Steps,
+  /// Individual step (`<step>`)
+  Step,
+  /// Table of contents placeholder (`<toc>` or `<toc />`)
+  Toc,
+  /// Tabbed code blocks container (`<tabs names="...">`)
+  Tabs {
+    names: Vec<String>,
+  },
+  /// Code block with extended attributes
+  CodeBlockExt {
+    language: Option<String>,
+    highlight: Option<String>,
+    plusdiff: Option<String>,
+    minusdiff: Option<String>,
+    linenumbers: bool,
   },
 }
 

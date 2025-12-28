@@ -3,6 +3,15 @@
 use super::BlockParser;
 use crate::ast::{Node, NodeKind, Span};
 
+/// Parsed code block attributes from the info string.
+struct CodeBlockAttrs {
+  language: Option<String>,
+  highlight: Option<String>,
+  plusdiff: Option<String>,
+  minusdiff: Option<String>,
+  linenumbers: bool,
+}
+
 impl<'a, 'b> BlockParser<'a, 'b> {
   pub fn try_fenced_code(&mut self, line: usize, col: usize) -> Option<Node> {
     let fence_char = self.scanner.peek()?;
@@ -22,14 +31,31 @@ impl<'a, 'b> BlockParser<'a, 'b> {
     let info = self.scan_line_content();
     self.scanner.consume(b'\n');
 
-    let (language, info_str) = parse_code_info(&info);
+    let attrs = parse_code_attrs(&info);
     let code = self.scan_fenced_content(fence_char, fence_len);
 
-    Some(Node::with_children(
+    // Use CodeBlockExt if any extended attributes are present
+    let kind = if attrs.highlight.is_some()
+      || attrs.plusdiff.is_some()
+      || attrs.minusdiff.is_some()
+      || attrs.linenumbers
+    {
+      NodeKind::CodeBlockExt {
+        language: attrs.language,
+        highlight: attrs.highlight,
+        plusdiff: attrs.plusdiff,
+        minusdiff: attrs.minusdiff,
+        linenumbers: attrs.linenumbers,
+      }
+    } else {
       NodeKind::FencedCodeBlock {
-        language,
-        info: info_str,
-      },
+        language: attrs.language,
+        info: None,
+      }
+    };
+
+    Some(Node::with_children(
+      kind,
       Span::new(start, self.scanner.pos(), line, col),
       vec![Node::new(NodeKind::Text { content: code }, Span::empty())],
     ))
@@ -178,13 +204,114 @@ impl<'a, 'b> BlockParser<'a, 'b> {
   }
 }
 
-fn parse_code_info(info: &str) -> (Option<String>, Option<String>) {
+fn parse_code_attrs(info: &str) -> CodeBlockAttrs {
+  let info = info.trim();
   if info.is_empty() {
-    return (None, None);
+    return CodeBlockAttrs {
+      language: None,
+      highlight: None,
+      plusdiff: None,
+      minusdiff: None,
+      linenumbers: false,
+    };
   }
 
-  let mut parts = info.splitn(2, char::is_whitespace);
-  let lang = parts.next().map(String::from);
-  let extra = parts.next().map(String::from);
-  (lang, extra)
+  let mut language = None;
+  let mut highlight = None;
+  let mut plusdiff = None;
+  let mut minusdiff = None;
+  let mut linenumbers = false;
+
+  let mut chars = info.chars().peekable();
+  let mut current = String::new();
+
+  // First token is the language (if not an attribute)
+  while let Some(&ch) = chars.peek() {
+    if ch.is_whitespace() {
+      break;
+    }
+    current.push(ch);
+    chars.next();
+  }
+
+  if !current.is_empty() && !current.contains('=') {
+    language = Some(current.clone());
+    current.clear();
+  }
+
+  // Parse remaining attributes
+  while chars.peek().is_some() {
+    // Skip whitespace
+    while let Some(&ch) = chars.peek() {
+      if !ch.is_whitespace() {
+        break;
+      }
+      chars.next();
+    }
+
+    // Read attribute name
+    let mut attr_name = String::new();
+    while let Some(&ch) = chars.peek() {
+      if ch == '=' || ch.is_whitespace() {
+        break;
+      }
+      attr_name.push(ch);
+      chars.next();
+    }
+
+    if attr_name.is_empty() {
+      break;
+    }
+
+    // Check for boolean attribute (no =)
+    if chars.peek() != Some(&'=') {
+      if attr_name.to_lowercase() == "linenumbers" {
+        linenumbers = true;
+      }
+      continue;
+    }
+
+    chars.next(); // skip =
+
+    // Read attribute value
+    let mut attr_value = String::new();
+    let quote_char = chars.peek().copied();
+
+    if quote_char == Some('"') || quote_char == Some('\'') {
+      chars.next(); // skip opening quote
+      while let Some(&ch) = chars.peek() {
+        if ch == quote_char.unwrap() {
+          chars.next(); // skip closing quote
+          break;
+        }
+        attr_value.push(ch);
+        chars.next();
+      }
+    } else {
+      // Unquoted value
+      while let Some(&ch) = chars.peek() {
+        if ch.is_whitespace() {
+          break;
+        }
+        attr_value.push(ch);
+        chars.next();
+      }
+    }
+
+    match attr_name.to_lowercase().as_str() {
+      "highlight" => highlight = Some(attr_value),
+      "plusdiff" => plusdiff = Some(attr_value),
+      "minusdiff" => minusdiff = Some(attr_value),
+      "linenumbers" => linenumbers = !attr_value.is_empty() && attr_value != "false",
+      _ => {}
+    }
+  }
+
+  CodeBlockAttrs {
+    language,
+    highlight,
+    plusdiff,
+    minusdiff,
+    linenumbers,
+  }
 }

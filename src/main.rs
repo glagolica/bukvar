@@ -1,6 +1,3 @@
-//! Bukvar - Ultra-fast zero-dependency markdown and documentation parser
-//! Part of the Glagolica Project
-
 mod ast;
 mod bench;
 mod cli;

@@ -180,6 +180,27 @@ impl DastWriter {
         self.write_str(name, w)?;
         self.write_opt_str(type_expr, w)
       }
+      NodeKind::Alert { alert_type } => w.write_all(&[alert_type_u8(alert_type)]),
+      NodeKind::Tabs { names } => {
+        w.write_all(&(names.len() as u32).to_le_bytes())?;
+        for name in names {
+          self.write_str(name, w)?;
+        }
+        Ok(())
+      }
+      NodeKind::CodeBlockExt {
+        language,
+        highlight,
+        plusdiff,
+        minusdiff,
+        linenumbers,
+      } => {
+        self.write_opt_str(language, w)?;
+        self.write_opt_str(highlight, w)?;
+        self.write_opt_str(plusdiff, w)?;
+        self.write_opt_str(minusdiff, w)?;
+        w.write_all(&[*linenumbers as u8])
+      }
       _ => Ok(()),
     }
   }

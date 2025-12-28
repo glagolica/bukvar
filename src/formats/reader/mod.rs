@@ -253,6 +253,48 @@ impl DastReader {
       51 => NodeKind::CodeSpan {
         content: self.read_str(r)?,
       },
+      52 => NodeKind::Frontmatter {
+        format: u8_to_frontmatter_format(read_u8(r)?),
+        content: self.read_str(r)?,
+      },
+      53 => NodeKind::MathInline {
+        content: self.read_str(r)?,
+      },
+      54 => NodeKind::MathBlock {
+        content: self.read_str(r)?,
+      },
+      55 => NodeKind::Footnote {
+        label: self.read_str(r)?,
+      },
+      56 => NodeKind::DefinitionList,
+      57 => NodeKind::DefinitionTerm,
+      58 => NodeKind::DefinitionDescription,
+      59 => NodeKind::AutoUrl {
+        url: self.read_str(r)?,
+      },
+      60 => NodeKind::Alert {
+        alert_type: u8_to_alert_type(read_u8(r)?),
+      },
+      61 => NodeKind::Steps,
+      62 => NodeKind::Step,
+      63 => NodeKind::Toc,
+      64 => NodeKind::Tabs {
+        names: {
+          let count = read_u32(r)? as usize;
+          let mut names = Vec::with_capacity(count);
+          for _ in 0..count {
+            names.push(self.read_str(r)?);
+          }
+          names
+        },
+      },
+      65 => NodeKind::CodeBlockExt {
+        language: self.read_opt_str(r)?,
+        highlight: self.read_opt_str(r)?,
+        plusdiff: self.read_opt_str(r)?,
+        minusdiff: self.read_opt_str(r)?,
+        linenumbers: read_u8(r)? != 0,
+      },
       _ => {
         return Err(io::Error::new(
           io::ErrorKind::InvalidData,
@@ -272,5 +314,25 @@ impl DastReader {
       0 => None,
       _ => Some(self.read_str(r)?),
     })
+  }
+}
+
+fn u8_to_alert_type(v: u8) -> AlertType {
+  match v {
+    0 => AlertType::Note,
+    1 => AlertType::Tip,
+    2 => AlertType::Important,
+    3 => AlertType::Warning,
+    4 => AlertType::Caution,
+    _ => AlertType::Note,
+  }
+}
+
+fn u8_to_frontmatter_format(v: u8) -> FrontmatterFormat {
+  match v {
+    0 => FrontmatterFormat::Yaml,
+    1 => FrontmatterFormat::Toml,
+    2 => FrontmatterFormat::Json,
+    _ => FrontmatterFormat::Yaml,
   }
 }

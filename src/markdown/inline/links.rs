@@ -37,14 +37,27 @@ impl<'a> InlineParser<'a> {
   fn build_inline_link(&mut self, start: usize, is_image: bool) -> Option<Node> {
     // Re-parse text position since we already advanced
     let text_start = start + if is_image { 2 } else { 1 };
-    let bracket_pos = self.bytes[text_start..]
+    let bracket_pos = match self.bytes[text_start..]
       .iter()
       .position(|&b| b == b']')
-      .map(|p| text_start + p)?;
+      .map(|p| text_start + p)
+    {
+      Some(pos) => pos,
+      None => {
+        self.pos = start;
+        return None;
+      }
+    };
     let text = self.input[text_start..bracket_pos].to_string();
 
     self.pos += 1; // skip (
-    let (url, title) = self.parse_dest()?;
+    let (url, title) = match self.parse_dest() {
+      Some(result) => result,
+      None => {
+        self.pos = start;
+        return None;
+      }
+    };
 
     let children = InlineParser::new(&text, self.link_defs).parse();
     let kind = if is_image {

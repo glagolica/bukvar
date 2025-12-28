@@ -1,34 +1,84 @@
 //! Container block elements: blockquotes, lists.
 
 use super::BlockParser;
-use crate::ast::{ListMarker, Node, NodeKind, Span};
+use crate::ast::{AlertType, ListMarker, Node, NodeKind, Span};
 
 impl<'a, 'b> BlockParser<'a, 'b> {
   pub fn parse_blockquote(&mut self, line: usize, col: usize) -> Node {
     let start = self.scanner.pos();
-    let content = self.collect_blockquote_content();
+    let (content, alert_type) = self.collect_blockquote_content_with_alert();
 
     let mut inner = super::super::MarkdownParser::new(&content);
     let inner_doc = inner.parse();
 
+    let kind = match alert_type {
+      Some(at) => NodeKind::Alert { alert_type: at },
+      None => NodeKind::BlockQuote,
+    };
+
     Node::with_children(
-      NodeKind::BlockQuote,
+      kind,
       Span::new(start, self.scanner.pos(), line, col),
       inner_doc.nodes,
     )
   }
 
-  fn collect_blockquote_content(&mut self) -> String {
+  fn collect_blockquote_content_with_alert(&mut self) -> (String, Option<AlertType>) {
     let mut content = String::new();
+    let mut alert_type = None;
+    let mut first_line = true;
 
     while !self.scanner.is_eof() && self.scanner.consume(b'>') {
       self.scanner.consume(b' ');
+
+      if first_line {
+        first_line = false;
+        if let Some(at) = self.try_parse_alert_marker() {
+          alert_type = Some(at);
+          self.scanner.consume(b'\n');
+          continue;
+        }
+      }
+
       self.append_line_to(&mut content);
       content.push('\n');
       self.scanner.consume(b'\n');
     }
 
-    content
+    (content, alert_type)
+  }
+
+  fn try_parse_alert_marker(&mut self) -> Option<AlertType> {
+    let pos = self.scanner.pos();
+
+    if !self.scanner.consume(b'[') || !self.scanner.consume(b'!') {
+      self.scanner.set_pos(pos);
+      return None;
+    }
+
+    let start = self.scanner.pos();
+    while !self.scanner.is_eof() && !self.scanner.check(b']') && !self.scanner.check(b'\n') {
+      self.scanner.advance();
+    }
+
+    let marker = self.scanner.slice(start, self.scanner.pos()).to_uppercase();
+
+    if !self.scanner.consume(b']') {
+      self.scanner.set_pos(pos);
+      return None;
+    }
+
+    match marker.as_str() {
+      "NOTE" => Some(AlertType::Note),
+      "TIP" => Some(AlertType::Tip),
+      "IMPORTANT" => Some(AlertType::Important),
+      "WARNING" => Some(AlertType::Warning),
+      "CAUTION" => Some(AlertType::Caution),
+      _ => {
+        self.scanner.set_pos(pos);
+        None
+      }
+    }
   }
 
   fn append_line_to(&mut self, content: &mut String) {

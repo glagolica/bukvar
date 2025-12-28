@@ -75,6 +75,35 @@ impl fmt::Display for DocStyle {
   }
 }
 
+/// Alert type for GitHub-style blockquote callouts
+///
+/// Used with `> [!TYPE]` syntax in blockquotes.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AlertType {
+  /// Highlights information users should take into account
+  Note,
+  /// Optional information to help users be more successful
+  Tip,
+  /// Crucial information necessary for users to succeed
+  Important,
+  /// Critical content demanding immediate user attention
+  Warning,
+  /// Negative potential consequences of an action
+  Caution,
+}
+
+impl fmt::Display for AlertType {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    match self {
+      Self::Note => write!(f, "NOTE"),
+      Self::Tip => write!(f, "TIP"),
+      Self::Important => write!(f, "IMPORTANT"),
+      Self::Warning => write!(f, "WARNING"),
+      Self::Caution => write!(f, "CAUTION"),
+    }
+  }
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
@@ -97,5 +126,14 @@ mod tests {
   fn test_doc_style_display() {
     assert_eq!(format!("{}", DocStyle::JSDoc), "JSDoc");
     assert_eq!(format!("{}", DocStyle::PyDocGoogle), "PyDoc (Google)");
+  }
+
+  #[test]
+  fn test_alert_type_display() {
+    assert_eq!(format!("{}", AlertType::Note), "NOTE");
+    assert_eq!(format!("{}", AlertType::Tip), "TIP");
+    assert_eq!(format!("{}", AlertType::Important), "IMPORTANT");
+    assert_eq!(format!("{}", AlertType::Warning), "WARNING");
+    assert_eq!(format!("{}", AlertType::Caution), "CAUTION");
   }
 }

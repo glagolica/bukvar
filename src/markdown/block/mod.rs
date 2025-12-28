@@ -2,6 +2,7 @@
 
 mod code;
 mod container;
+mod custom;
 mod leaf;
 
 use super::{InlineParser, LinkDef, Scanner};
@@ -79,6 +80,12 @@ impl<'a, 'b> BlockParser<'a, 'b> {
       // Blockquotes: >
       Some(b'>') => {
         return Some(self.parse_blockquote(start_line, start_col));
+      }
+      // Custom elements: <steps>, <toc>, <tabs>
+      Some(b'<') => {
+        if let Some(node) = self.try_custom_element(start_line, start_col) {
+          return Some(node);
+        }
       }
       _ => {}
     }

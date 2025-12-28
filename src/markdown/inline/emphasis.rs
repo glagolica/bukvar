@@ -61,7 +61,15 @@ impl<'a> InlineParser<'a> {
     let content_start = self.pos;
 
     // Find exact matching backtick sequence
-    let close_pos = find_backticks_fast(&self.bytes[self.pos..], backtick_count)?;
+    let close_pos = match find_backticks_fast(&self.bytes[self.pos..], backtick_count) {
+      Some(pos) => pos,
+      None => {
+        // Reset position on failure
+        self.pos = start;
+        return None;
+      }
+    };
+
     let content = self.input[content_start..content_start + close_pos]
       .trim()
       .to_string();

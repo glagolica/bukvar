@@ -46,3 +46,24 @@ debug = true
 [[bin]]
 name = "bukvar"
 path = "src/main.rs"
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+unused_unsafe = "deny"
+unused_import_braces = "deny"
+unused_lifetimes = "deny"
+keyword_idents_2018 = "deny"
+keyword_idents_2024 = "deny"
+missing_abi = "deny"
+future_incompatible = { level = "deny", priority = -1 }
+
+[workspace.lints.clippy]
+borrow_as_ptr = "deny"
+case_sensitive_file_extension_comparisons = "deny"
+cast_lossless = "deny"
+cast_ptr_alignment = "deny"
+match_bool = "deny"
+mut_mut = "deny"
+wildcard_dependencies = "deny"
+redundant_type_annotations = "deny"
+infinite_loop = "deny"

@@ -160,6 +160,48 @@ pub fn write_kind(out: &mut String, kind: &NodeKind) {
     NodeKind::AutoUrl { url } => {
       out.push_str(&format!("\"type\":\"AutoUrl\",\"url\":\"{}\"", esc(url)))
     }
+    NodeKind::Alert { alert_type } => out.push_str(&format!(
+      "\"type\":\"Alert\",\"alert_type\":\"{}\"",
+      alert_type
+    )),
+    NodeKind::Steps => out.push_str("\"type\":\"Steps\""),
+    NodeKind::Step => out.push_str("\"type\":\"Step\""),
+    NodeKind::Toc => out.push_str("\"type\":\"Toc\""),
+    NodeKind::Tabs { names } => {
+      out.push_str("\"type\":\"Tabs\",\"names\":[");
+      for (i, name) in names.iter().enumerate() {
+        if i > 0 {
+          out.push(',');
+        }
+        out.push_str(&format!("\"{}\"", esc(name)));
+      }
+      out.push(']');
+    }
+    NodeKind::CodeBlockExt {
+      language,
+      highlight,
+      plusdiff,
+      minusdiff,
+      linenumbers,
+    } => {
+      out.push_str("\"type\":\"CodeBlock\"");
+      if let Some(l) = language.as_ref() {
+        out.push_str(&format!(",\"language\":\"{}\"", esc(l)));
+      }
+      if let Some(h) = highlight.as_ref() {
+        out.push_str(&format!(",\"highlight\":\"{}\"", esc(h)));
+      }
+      if let Some(p) = plusdiff.as_ref() {
+        out.push_str(&format!(",\"plusdiff\":\"{}\"", esc(p)));
+      }
+      if let Some(m) = minusdiff.as_ref() {
+        out.push_str(&format!(",\"minusdiff\":\"{}\"", esc(m)));
+      }
+      if *linenumbers {
+        out.push_str(",\"linenumbers\":true");
+      }
+    }
+    #[allow(unreachable_patterns)]
     _ => out.push_str(&format!("\"type\":\"{:?}\"", std::mem::discriminant(kind))),
   }
   out.push('}');

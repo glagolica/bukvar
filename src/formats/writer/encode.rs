@@ -64,6 +64,12 @@ pub fn node_kind_u8(k: &NodeKind) -> u8 {
     NodeKind::DefinitionTerm => 57,
     NodeKind::DefinitionDescription => 58,
     NodeKind::AutoUrl { .. } => 59,
+    NodeKind::Alert { .. } => 60,
+    NodeKind::Steps => 61,
+    NodeKind::Step => 62,
+    NodeKind::Toc => 63,
+    NodeKind::Tabs { .. } => 64,
+    NodeKind::CodeBlockExt { .. } => 65,
   }
 }
 
@@ -101,5 +107,15 @@ pub fn doc_style_u8(ds: &DocStyle) -> u8 {
     DocStyle::PyDoc => 2,
     DocStyle::PyDocGoogle => 3,
     DocStyle::PyDocNumpy => 4,
+  }
+}
+
+pub fn alert_type_u8(at: &AlertType) -> u8 {
+  match at {
+    AlertType::Note => 0,
+    AlertType::Tip => 1,
+    AlertType::Important => 2,
+    AlertType::Warning => 3,
+    AlertType::Caution => 4,
   }
 }
