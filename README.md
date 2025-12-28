@@ -1,6 +1,6 @@
-﻿# Bukvar
+﻿<div align="center">
 
-<div align="center">
+# Bukvar
 
 **Ultra-fast zero-dependency markdown and documentation parser**
 
